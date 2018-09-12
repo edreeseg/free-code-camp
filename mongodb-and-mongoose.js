@@ -13,6 +13,11 @@
 // as `MONGO_URI`. Connect to the database using `mongoose.connect(<Your URI>)`
 const mongoose = require('mongoose');
 mongoose.connect(process.env.MONGO_URI);
+
+const db = mongoose.connection;
+db.on('error', console.error.bind(console, 'connection error: ')); // Sends error msg if there is error connecting.
+db.once('open', () => console.log('We\'re connected')); // Sends msg to notify that connection was successful 
+
 const Schema = mongoose.Schema;
 
 /** # SCHEMAS and MODELS #
@@ -87,10 +92,18 @@ const Person = mongoose.model('Person', personSchema);
 // });
 
 var createAndSavePerson = function(done) {
+	const person = new Person({
+	  name: 'Edward',
+	  age: 27,
+    favoriteFoods: ['pizza', 'burgers', 'chicken parm']
+  });
   
-  done(null /*, data*/);
-
-};
+  person.save(function(err, data){
+	if (err) return done(err);
+	console.log(data);
+	done(null, data);
+  });
+}
 
 /** 4) Create many People with `Model.create()` */
 
@@ -102,9 +115,11 @@ var createAndSavePerson = function(done) {
 // 'arrayOfPeople'.
 
 var createManyPeople = function(arrayOfPeople, done) {
-    
-    done(null/*, data*/);
-    
+    Person.create(arrayOfPeople, function(err, data){
+      if (err) return done(err);
+      console.log(data);
+      done(null, data);
+    });
 };
 
 /** # C[R]UD part II - READ #
